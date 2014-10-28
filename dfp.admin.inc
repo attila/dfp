@@ -120,6 +120,22 @@ function dfp_admin_settings($form, $form_state) {
     ),
   );
 
+  $options = array(
+    '' => t('Load gpt.js via script tag, output synchronous inline code'),
+    'snippet' => t('Load gpt.js via an inline snippet, output asynchronous inline code'),
+    'defer' => t('Load gpt.js via script tag with defer, output asynchronous inline code'),
+  );
+  if (module_exists('advagg')) {
+    $options['async'] = t('Load gpt.js via script tag with async and defer attributes, asynchronous inline code');
+  }
+  $form['global_tag_settings']['dfp_load_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('GPT mode'),
+    '#options' => $options,
+    '#default_value' => variable_get('dfp_load_mode', ''),
+    '#description' => t(''),
+  );
+
   // Global display options.
   $form['global_display_options'] = array(
     '#type' => 'fieldset',

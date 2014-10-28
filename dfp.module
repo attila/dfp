@@ -679,16 +679,34 @@ function _dfp_js_global_settings() {
   );
   drupal_add_js($js, $options);
 
-  // Inlclude a script tag for the Google Tag Services.
-  // @todo: One day this should include an async=true attribute. See #1140356.
-  //        However, there is a good chance this might break <= IE8.
-  $options['type'] = 'external';
+  // Load Google Tag Services external library.
   $options['weight']++;
-  drupal_add_js(($GLOBALS['is_https'] ? "https://" : "http://") . DFP_GOOGLE_TAG_SERVICES_URL, $options);
+  $protocol = $GLOBALS['is_https'] ? 'https://' : 'http://';
+  $mode = variable_get('dfp_load_mode', '');
+  switch ($mode) {
+    case 'snippet':
+      $js = '(function() {' . "\n";
+      $js .= '  var gads = document.createElement("script"); gads.async = true;' . "\n";
+      $js .= '  gads.src = "'. $protocol . DFP_GOOGLE_TAG_SERVICES_URL .'"' . "\n";
+      $js .= '  var node = document.getElementsByTagName("script")[0];' . "\n";
+      $js .= '  node.parentNode.insertBefore(gads, node);' . "\n";
+      $js .= '}());';
+      break;
+    case 'async':
+      $options['async'] = 'async';
+    case 'defer':
+      $options['defer'] = 'defer';
+    default:
+      $options['type'] = 'external';
+      $js = $protocol . DFP_GOOGLE_TAG_SERVICES_URL;
+      break;
+  }
+  drupal_add_js($js, $options);
+
 
   // Add global settings with a heavy weight so that they appear after all the
   // defineSlot() calls otherwise IE8 and Opera fail to display ads properly.
-  $js = 'googletag.cmd.push(function() {' . "\n";
+  $js = '';
   if (variable_get('dfp_async_rendering', 1)) {
     $js .= '  googletag.pubads().enableAsyncRendering();' . "\n";
   }
@@ -720,9 +738,13 @@ function _dfp_js_global_settings() {
     }
   }
 
-  $js .= '});' . "\n";
-  $js .= variable_get('dfp_injected_js2', '') . "\n";
-  $js .= 'googletag.enableServices();';
+  $js .= '  googletag.enableServices();' . "\n";
+  $js .= variable_get('dfp_injected_js2', '');
+
+  // Add wrapper for asynchronous mode.
+  if ($mode) {
+    $js = 'googletag.cmd.push(function() {' . "\n" . $js . "\n" . '});' . "\n";
+  }
 
   $options = array(
     'type' => 'inline',
@@ -788,6 +810,11 @@ function _dfp_js_slot_definition($tag) {
     $js .= '  .defineSizeMapping(mapping)' . "\n";
   }
   $js = rtrim($js, "\n") . ';';
+
+  // Add wrapper for asynchronous mode.
+  if (variable_get('dfp_load_mode', '')) {
+    $js = 'googletag.cmd.push(function() {' . "\n" . $js . "\n" . '});' . "\n";
+  }
 
   $options = array(
     'type' => 'inline',
