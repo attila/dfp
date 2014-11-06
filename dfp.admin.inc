@@ -71,6 +71,27 @@ function dfp_admin_settings($form, $form_state) {
     '#default_value' => variable_get('dfp_async_rendering', 1),
     '#description' => t('This can speed up page rendering time by loading page content without waiting for ads to load.'),
   );
+
+  $options = array(
+    'snippet' => t('Inline snippet'),
+    'defer' => t('Script tag with defer attribute'),
+  );
+  if (module_exists('advagg')) {
+    $options['async'] = t('Script tag with async and defer attributes');
+  }
+  $form['global_tag_settings']['dfp_async_load_mode'] = array(
+    '#type' => 'radios',
+    '#title' => t('Asynchonous loading mode'),
+    '#options' => $options,
+    '#default_value' => variable_get('dfp_async_load_mode', 'snippet'),
+    '#description' => t('Select the asynchronous loading method of the . Inline snippet is the default and recommended by Google. "Async and defer" method is only available if <a href="!url">advagg module</a> is enabled.'),
+    '#states' => array(
+      'visible' => array(
+        'input[name="dfp_async_rendering"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
   $form['global_tag_settings']['dfp_disable_init_load'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable initial ad load'),
@@ -118,22 +139,6 @@ function dfp_admin_settings($form, $form_state) {
         'input[name="dfp_enable_ad_categories"]' => array('checked' => TRUE),
       ),
     ),
-  );
-
-  $options = array(
-    '' => t('Load gpt.js via script tag, output synchronous inline code'),
-    'snippet' => t('Load gpt.js via an inline snippet, output asynchronous inline code'),
-    'defer' => t('Load gpt.js via script tag with defer, output asynchronous inline code'),
-  );
-  if (module_exists('advagg')) {
-    $options['async'] = t('Load gpt.js via script tag with async and defer attributes, asynchronous inline code');
-  }
-  $form['global_tag_settings']['dfp_load_mode'] = array(
-    '#type' => 'radios',
-    '#title' => t('GPT mode'),
-    '#options' => $options,
-    '#default_value' => variable_get('dfp_load_mode', ''),
-    '#description' => t(''),
   );
 
   // Global display options.

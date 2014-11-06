@@ -25,9 +25,11 @@ Drupal.behaviors.dfpVerticalTabs = {
       var adUnit = Drupal.checkPlain($('#edit-dfp-default-adunit', context).val());
       var async = Drupal.checkPlain($('#edit-dfp-async-rendering', context).is(':checked'));
       var single = Drupal.checkPlain($('#edit-dfp-single-request', context).is(':checked'));
+      var asyncMode = Drupal.checkPlain($('input[name="dfp_async_load_mode"]:checked', context).val());
 
       summary = 'Network Id: ' + networkId + '<br/>';
       summary += (async == "true" ? checkmark : exmark) + ' Load ads asyncronously' + '<br/>';
+      summary += (async == "true") ? 'Loaded via ' + asyncMode + '<br/>' : '';
       summary += (single == "true" ? checkmark : exmark) + ' Use a single request';
 
       return summary;

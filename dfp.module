@@ -662,6 +662,8 @@ function _dfp_get_ad_category($term, $clean_string = FALSE) {
  * slot definitions.
  */
 function _dfp_js_global_settings() {
+  $async_rendering = variable_get('dfp_async_rendering', 1);
+
   // Initialize the google varibales and inject user-defined javascript.
   $js = 'var googletag = googletag || {};' . "\n";
   $js .= 'googletag.cmd = googletag.cmd || [];';
@@ -680,34 +682,41 @@ function _dfp_js_global_settings() {
   drupal_add_js($js, $options);
 
   // Load Google Tag Services external library.
-  $options['weight']++;
   $protocol = $GLOBALS['is_https'] ? 'https://' : 'http://';
-  $mode = variable_get('dfp_load_mode', '');
-  switch ($mode) {
-    case 'snippet':
-      $js = '(function() {' . "\n";
-      $js .= '  var gads = document.createElement("script"); gads.async = true;' . "\n";
-      $js .= '  gads.src = "'. $protocol . DFP_GOOGLE_TAG_SERVICES_URL .'"' . "\n";
-      $js .= '  var node = document.getElementsByTagName("script")[0];' . "\n";
-      $js .= '  node.parentNode.insertBefore(gads, node);' . "\n";
-      $js .= '}());';
-      break;
-    case 'async':
-      $options['async'] = 'async';
-    case 'defer':
-      $options['defer'] = 'defer';
-    default:
-      $options['type'] = 'external';
-      $js = $protocol . DFP_GOOGLE_TAG_SERVICES_URL;
-      break;
+  $options['weight']++;
+
+  if ($async_rendering) {
+    $mode = variable_get('dfp_async_load_mode', 'snippet');
+    switch ($mode) {
+      case 'snippet':
+        $js = '(function() {' . "\n";
+        $js .= '  var gads = document.createElement("script"); gads.async = true;' . "\n";
+        $js .= '  gads.src = "' . $protocol . DFP_GOOGLE_TAG_SERVICES_URL . '"' . "\n";
+        $js .= '  var node = document.getElementsByTagName("script")[0];' . "\n";
+        $js .= '  node.parentNode.insertBefore(gads, node);' . "\n";
+        $js .= '}());';
+        break;
+      case 'async':
+        $options['async'] = TRUE;
+      case 'defer':
+        $js = $protocol . DFP_GOOGLE_TAG_SERVICES_URL;
+        $options['type'] = 'external';
+        $options['defer'] = 'defer';
+        break;
+    }
   }
+  else {
+    $options['type'] = 'external';
+    $js = $protocol . DFP_GOOGLE_TAG_SERVICES_URL;
+  }
+
   drupal_add_js($js, $options);
 
 
   // Add global settings with a heavy weight so that they appear after all the
   // defineSlot() calls otherwise IE8 and Opera fail to display ads properly.
   $js = '';
-  if (variable_get('dfp_async_rendering', 1)) {
+  if ($async_rendering) {
     $js .= '  googletag.pubads().enableAsyncRendering();' . "\n";
   }
   else {
@@ -742,7 +751,7 @@ function _dfp_js_global_settings() {
   $js .= variable_get('dfp_injected_js2', '');
 
   // Add wrapper for asynchronous mode.
-  if ($mode) {
+  if ($async_rendering) {
     $js = 'googletag.cmd.push(function() {' . "\n" . $js . "\n" . '});' . "\n";
   }
 
@@ -812,7 +821,7 @@ function _dfp_js_slot_definition($tag) {
   $js = rtrim($js, "\n") . ';';
 
   // Add wrapper for asynchronous mode.
-  if (variable_get('dfp_load_mode', '')) {
+  if (variable_get('dfp_async_rendering', 1)) {
     $js = 'googletag.cmd.push(function() {' . "\n" . $js . "\n" . '});' . "\n";
   }
 
@@ -898,6 +907,9 @@ function template_preprocess_dfp_tag(&$variables) {
       '#weight' => -1,
     );
   }
+
+  // Export variable to template.
+  $variables['async_rendering'] = $async_rendering = variable_get('dfp_async_rendering', 1);
 
   // Define a javascript ad slot for this tag.
   _dfp_js_slot_definition($tag);
