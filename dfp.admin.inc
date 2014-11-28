@@ -84,7 +84,7 @@ function dfp_admin_settings($form, $form_state) {
     '#title' => t('Asynchonous loading mode'),
     '#options' => $options,
     '#default_value' => variable_get('dfp_async_load_mode', 'snippet'),
-    '#description' => t('Select the asynchronous loading method of the . Inline snippet is the default and recommended by Google. "Async and defer" method is only available if <a href="!url">advagg module</a> is enabled.'),
+    '#description' => t('Select the asynchronous loading method of the . Inline snippet is the default and <a href="!googleurl">recommended by Google</a>. "Async and defer" method is only available if <a href="!advaggurl">advagg module</a> is enabled.', array('!googleurl' => 'https://support.google.com/dfp_premium/answer/1638622?ref_topic=4389931', '!advaggurl' => 'https://www.drupal.org/project/advagg')),
     '#states' => array(
       'visible' => array(
         'input[name="dfp_async_rendering"]' => array('checked' => TRUE),
