@@ -204,8 +204,8 @@ function dfp_entity_view($entity, $type, $view_mode, $langcode) {
  */
 function dfp_ctools_plugin_directory($module, $type) {
   // Load the export_ui plugin.
-  if ($type == 'export_ui') {
-    return 'plugins/export_ui';
+  if ($type == 'export_ui' || $type == 'content_types') {
+    return 'plugins/' . $type;
   }
 }
 
@@ -829,6 +829,7 @@ function _dfp_js_slot_definition($tag) {
     'type' => 'inline',
     'group' => JS_LIBRARY,
     'weight' => 0,
+    'force header' => TRUE,
   );
   drupal_add_js($js, $options);
 }
@@ -938,8 +939,8 @@ function template_preprocess_dfp_short_tag(&$variables) {
   }
   drupal_alter('dfp_short_tag_keyvals', $keyvals);
 
-  $variables['url_jump'] = 'http://' . DFP_GOOGLE_SHORT_TAG_SERVICES_URL . '/jump?' . http_build_query($keyvals);
-  $variables['url_ad'] = 'http://' . DFP_GOOGLE_SHORT_TAG_SERVICES_URL . '/ad?' . http_build_query($keyvals);
+  $variables['url_jump'] = 'http://' . DFP_GOOGLE_SHORT_TAG_SERVICES_URL . '/jump?' . drupal_http_build_query($keyvals);
+  $variables['url_ad'] = 'http://' . DFP_GOOGLE_SHORT_TAG_SERVICES_URL . '/ad?' . drupal_http_build_query($keyvals);
 }
 
 /**
