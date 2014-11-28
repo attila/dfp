@@ -435,9 +435,6 @@ function dfp_breakpoint_form_validate($element, &$form_state) {
   if (empty($element['browser_size']['#value']) && !empty($element['ad_sizes']['#value'])) {
     form_error($element['browser_size'], t('The browser size cannot be empty if ad size(s) exists.'));
   }
-  elseif (!empty($element['browser_size']['#value']) && empty($element['ad_sizes']['#value'])) {
-    form_error($element['ad_sizes'], t('The ad size(s) cannot be empty if a browser size exists.'));
-  }
   if (!empty($element['browser_size']['#value']) && !empty($element['ad_sizes']['#value'])) {
     if (preg_match('/[^x|0-9]/', $element['browser_size']['#value'])) {
       form_error($element['browser_size'], t('The browser size can only contain numbers and the character x.'));
